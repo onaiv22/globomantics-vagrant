@@ -1,0 +1,13 @@
+---
+ - hosts: master
+   become: root
+   user: femistone
+
+   tasks: 
+    - name: ensure replication user exists on master
+      mysql_user: name=slave_user password=Toyota2015 login_password=Toyota2015 login_user=root priv='*.*:REPLICATION SLAVE' host=%  state=present delegate_to=127.0.0.1
+      register: replication
+      ignore_errors:true
+      when: slave|failed
+       
+

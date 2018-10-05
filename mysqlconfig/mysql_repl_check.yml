@@ -1,0 +1,27 @@
+---
+ - hosts: master
+   become: root
+   user: femistone
+   gather_facts: yes
+  
+   tasks:
+    - name:  check mysql replication status
+      mysql_replication: mode=getmaster login_user=root login_password=Toyota2015 
+      register: replication
+      when: >
+         slave|failed
+         and (mysql_replication_role == 'slave')
+         and (mysql_replication_master != '')
+
+ 
+ - hosts: slave-1
+   become: root
+   user: femistone
+   gather_facts: yes
+
+   tasks:
+    - name: check mysql replication status for slave
+      mysql_replication: mode=getslave login_user=root login_password=Toyota2015
+      ignore_errors: true
+      register: slave
+

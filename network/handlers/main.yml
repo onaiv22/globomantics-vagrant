@@ -1,0 +1,5 @@
+---
+ - name: restart network
+   command: bash -c "/etc/init.d/network restart"
+      
+

@@ -1,0 +1,87 @@
+---
+- hosts: webservers
+  user: femistone
+  become: yes
+  gather_facts: yes
+
+  tasks:
+   - name: Ensure that Apache is installed
+     yum: name=httpd state=present
+     when: ansible_os_family == "RedHat"
+
+   - name: Start Apache Services
+     service: name=httpd enabled=yes state=started
+     notify:
+      - Restart Apache
+  
+  handlers:
+    - name: Restart Apache
+      service: name=httpd state=restarted
+
+- hosts: dbservers
+  become: yes
+  user: femistone
+  gather_facts: yes
+  vars:
+   port: 3306
+   socket: /var/lib/mysql/mysql.sock
+  tasks:
+   - name: Add  MariaDB server repository
+     yum_repository: name=mariaDB description=mysql-Yum-Repository baseurl=http://yum.mariadb.org/10.0.27/centos7-amd64/ gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB gpgcheck=no enabled=yes state=present
+  
+   - name: install epel-release package
+     yum_repository : name=epel-release description=epel-release baseurl=https://dl.fedoraproject.org/pub/epel/7/x86_64/ gpgcheck=0 gpgkey=https://getfedora.org/static/352C64E5.txt enabled=yes state=present  
+   
+   - name: Install mysql
+     yum: name=mysql-server state=installed
+  
+   - name: Ensure MySQL is installed
+     yum: name=mysql-server state=present
+     when: ansible_os_family == "RedHat"
+  
+   - name: start MySQL
+     service: name=mysql state=started
+  
+   - name: create  file
+     file: path=/etc/mysql/conf/mysql.conf  owner=femistone group=root mode=0777 state=directory
+   
+   - name: Install pip package from yum
+     yum: name=python-pip state=latest
+
+   - name: Install python-wheel from yum
+     yum: name=python-wheel state=present
+
+   - name: Install Mysql-python
+     yum: name=MySQL-python 
+   
+   - name: Remove the test database
+     mysql_db: name=test state=absent
+  
+   - name: Ensure no anonymous users are in the database
+     mysql_user: user='' host=$item state=absent
+  
+   - name: Deploy mysql configuration
+     template: src=/etc/ansible/templates/mysql_conf.j2 dest=/etc/mysql/conf/mysql.conf owner=femistone group=root mode=0777
+     notify:
+      Restart Mysql
+  handlers:
+   - name: Restart Mysql
+     service: name=mysql state=started
+
+     
+
+- hosts: webservers
+  become: yes
+  become_user: femistone
+  
+  tasks:
+   - name: start IPTABLES NOW!!!
+     service: name=iptables state=started
+
+
+
+
+
+
+
+

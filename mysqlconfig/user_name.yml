@@ -1,0 +1,9 @@
+---
+ - hosts: master
+   become: root
+   user: femistone
+   
+   tasks:
+    - name: create user
+      mysql_user: name=seni password=seni2015 login_password=Toyota2015 login_user=root priv='*:ALL,GRANT' host=%  state=present
+

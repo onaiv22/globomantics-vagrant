@@ -1,0 +1,64 @@
+---
+
+ - name: configure networking to use static ip addr
+   template:
+      src: /etc/ansible/roles/network/templates/ifcfg-enp0s8.j2
+      dest: /etc/sysconfig/network-scripts/ifcfg-enp0s8
+      backup: yes
+      owner: root
+      group: root
+      mode: 0644
+    
+ - name: copy /etc/host file
+   template:
+      src: /etc/ansible/roles/network/templates/hosts.j2
+      dest: /etc/hosts
+      owner: root
+      group: root
+      mode: 0770
+      backup: yes
+
+ - name: copy /etc/hostname file
+   template:
+      src: /etc/ansible/roles/network/templates/hostname.j2
+      dest: /etc/hostname
+      owner: root
+      group: root
+      mode: 0770
+      backup: yes
+
+ - name: copy network file
+   template:
+      src: /etc/ansible/roles/network/templates/network.j2
+      dest: /etc/sysconfig/network
+      owner: root
+      group: root
+      mode: 0644
+      backup: yes
+     
+ - name: copy resolv.conf file
+   template:
+      src: /etc/ansible/roles/network/templates/resolv.conf.j2
+      dest: /etc/resolv.conf
+      owner: root
+      mode: 0644
+      group: root
+      backup: yes
+
+ - name: restart network
+   command: bash -c "/etc/init.d/network restart"
+
+ - pause: seconds=5
+         
+ - name: start firewalld
+   systemd:
+      name: firewalld
+      state: started
+      enabled: yes
+
+ - name: open firewall for dns
+   firewalld:
+      service: dns
+      permanent: true
+      state: enabled
+      immediate: yes       
