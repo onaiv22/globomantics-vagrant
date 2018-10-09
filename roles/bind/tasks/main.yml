@@ -1,0 +1,60 @@
+---
+ - name: install bind
+   yum:
+      name: "{{ item }}" 
+      state: installed
+   with_items:
+      - python-netaddr
+      - bind
+      - bind-utils
+   tags: bind
+
+ - name: copy named.conf.j2
+   template:
+      src: /etc/ansible/roles/bind/templates/named.conf.j2
+      dest: /etc/named.conf
+      owner: root
+      group: named
+      mode: 0660
+   notify: restart named
+
+ - name: copy named.rfc1912.zones
+   template:
+      src: /etc/ansible/roles/bind/templates/named.rfc1912.zones.j2
+      dest: /etc/rfc1912.zones
+      owner: root
+      group: named
+      mode: 0660
+
+ - name: create forward.zone file
+   file:
+      path: /var/named/forward.zones
+      state: touch
+      owner: root
+      group: named
+      mode: 0660
+
+ - name: create reverse.zone file
+   file:
+      path: /var/named/reverse.zones
+      state: touch
+      owner: root
+      group: named
+      mode: 0660
+   
+ - name: copy forward.zones file across
+   template:
+      src: /etc/ansible/roles/bind/templates/forward.zone.j2
+      dest: /var/named/forward.zones
+      owner: root
+      group: named
+      mode: 0660
+
+ - name: copy reverse.zones file across
+   template:
+      src: /etc/ansible/roles/bind/templates/reverse.zone.j2
+      dest: /var/named/reverse.zones
+      owner: root
+      group: named
+      mode: 0660
+   notify: restart named
