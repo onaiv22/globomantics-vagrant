@@ -1,0 +1,27 @@
+---
+- hosts: webservers
+  user: femistone
+  become: yes
+  gather_facts: yes
+  vars:
+    device: /dev/sdb
+    fstype: ext4
+  tasks:
+   - name: Creating the second disk partioning on /dev/sdb
+     parted: device="{{ device }}" number=2 part_start=51% part_end=80% state=present 
+
+   - name: formating parttioned dis /dev/sdb2
+     filesystem: fstype=ext4 dev=/dev/sdb2
+
+   - name: creating a mount pount for the formated partition
+     file: state=directory owner=root group=root path=/data2 mode=01777
+
+   - name: mount /dev/sdb2 on the mount /data2
+     mount: fstype="{{ fstype }}" src=/dev/sdb2 path=/data2 state=mounted
+ 
+
+
+
+
+
+

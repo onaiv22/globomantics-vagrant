@@ -1,0 +1,29 @@
+---
+- hosts: webservers
+  user: femistone
+  become: yes
+  gather_facts: yes
+  vars:
+    device: /dev/sdb
+    fstype: ext4
+  tasks:
+   - name: Creating a primary disk partition on /dev/sdb
+     parted: device="{{ device }}" number=1 part_start=0% part_end=50% label=gpt state=present  
+   
+   - name: formating partitioned disk /dev/sdb1, creating a filesystem
+     filesystem: fstype=ext4 dev=/dev/sdb1
+
+   - name: creating a mount pointt for the formated partition
+     file: state=directory owner=root group=root path=/data1 mode=01777
+
+   - name: mount /dev/sdb1 on the mount /data1
+     mount: fstype="{{ fstype }}" src=/dev/sdb1 path=/data1 state=mounted
+
+   
+ 
+
+
+
+
+
+
