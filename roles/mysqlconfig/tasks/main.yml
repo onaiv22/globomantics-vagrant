@@ -1,0 +1,90 @@
+---
+ - name: Add  MariaDB server repository
+   yum_repository:
+      name: MariaDB
+      description: mysql-Yum-Repository
+      baseurl: http://yum.mariadb.org/10.0.27/centos7-amd64/
+      gpgkey: https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+      gpgcheck: no
+      enabled: yes
+      state: present
+  
+ - name: install epel-release package
+   yum_repository: 
+      name: epel-release 
+      description: epel-release 
+      baseurl: https://dl.fedoraproject.org/pub/epel/7/x86_64/
+      gpgcheck: no 
+      gpgkey: https://getfedora.org/static/352C64E5.txt
+      enabled: yes 
+      state: present  
+   
+ - name: Install mariadb
+   yum: 
+      name: mariadb-server 
+      state: installed
+  
+ 
+ - name: start MySQL
+   service: 
+      name: mysql 
+      state: started
+      enabled: yes
+
+ - name: create log for mysql
+   file: 
+      path: /var/log/mariadb.log 
+      owner: mysql 
+      group: root 
+      mode: 0660 
+      state: touch
+
+ - name: create path for data files
+   file:
+      path: /data
+      owner: mysql
+      group: mysql
+      mode: 0660
+      state: directory
+
+   
+ - name: Install pip package from yum
+   yum: 
+      name: python-pip 
+      state: latest
+
+ - name: Install python-wheel from yum
+   yum: 
+      name: python-wheel 
+      state: present
+
+ - name: Install Mysql-python
+   yum: 
+      name: MySQL-python
+      state: installed 
+   
+ - name: Remove the test database
+   mysql_db: 
+      name: test 
+      state: absent
+  
+ - name: Ensure no anonymous users are in the database
+   mysql_user: 
+      name: '' 
+      host: localhost 
+      state: absent
+ 
+ - name: Create database user with all db privileges
+   mysql_user:
+      name: admin
+      password: "{{ password }}"
+      priv: '*.*:ALL,GRANT'
+      state: present
+
+
+
+
+
+
+
+

@@ -1,0 +1,4 @@
+---
+ - name: restart mysql
+   command: bash -c "/etc/init.d/mysql restart"
+

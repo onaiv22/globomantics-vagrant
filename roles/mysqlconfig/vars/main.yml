@@ -1,0 +1,8 @@
+---
+port: 3306
+socket: /var/lib/mysql/mysql.sock
+mariadb-baseurl: "http://yum.mariadb.org/10.0.27/centos7-amd64"
+mariadb-gpgkey: "https://yum.mariadb.org/RPM-GPG-KEY-MariaDB"
+epel-baseurl: "https://dl.fedoraproject.org/pub/epel/7/x86_64"
+epel-gpgkey: "https://getfedora.org/static/352C64E5.txt"
+password: Password 

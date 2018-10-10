@@ -1,0 +1,13 @@
+ServerTokens os
+serverroot "/etc/httpd"
+pidfile run/httpd.pid
+Timeout 60
+keepAlive Off
+MaxKeepAliveTimeout 15
+<IfModule prefork.c>
+StartServers        8
+MinSpareServers     5
+MaxSpareServers     20
+ServerLimit         256
+Maxclients          256
+MaxRequestsPerChild   4000
