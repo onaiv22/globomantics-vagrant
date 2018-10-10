@@ -47,6 +47,25 @@
       mode: 0660
       state: directory
 
+ - name: create path for backup
+   file:
+      path: /backup
+      owner: root
+      group: root
+      mode: 0660
+      state: directory
+
+ - name: copy database dump file
+   copy:
+      src: /etc/ansible/AWBackup.sql
+      dest: /backup
+
+ - name: Restore database
+   mysql_db:
+      name: adventureworks
+      state: import
+      target: /backup/AWBackup.sql
+
    
  - name: Install pip package from yum
    yum: 
