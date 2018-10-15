@@ -1,0 +1,4 @@
+yum_utils:
+   - device-mapper-persistent-data
+   - lvm2
+   - yum-utils
