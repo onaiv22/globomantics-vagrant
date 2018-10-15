@@ -1,0 +1,15 @@
+---
+ - name: Install pip package from yum
+   yum:
+      name: python-pip
+      state: latest
+
+ - name: Install python-wheel from yum
+   yum:
+      name: python-wheel
+      state: present
+
+ - name: Install Mysql-python
+   yum:
+      name: MySQL-python
+      state: installed
