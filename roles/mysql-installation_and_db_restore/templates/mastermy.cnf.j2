@@ -1,0 +1,13 @@
+[mysqld]
+server-id = 2
+datadir = /data
+binlog-do-db = adventureworks
+log_bin = /data/binlog/mariadb-bin
+log_bin_index = /data/binlog/mariadb-bin.index
+relay_log = /data/relay/relay-bin
+relay_log_index = /data/relay/relay-bin.index
+relay_log_info_file = /data/relay/relay-bin.info
+#
+# include all files from the config directory
+#
+!includedir /etc/my.cnf.d

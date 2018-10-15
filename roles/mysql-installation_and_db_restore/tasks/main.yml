@@ -1,0 +1,115 @@
+---
+ - name: Add  MariaDB server repository
+   yum_repository:
+      name: MariaDB
+      description: mysql-Yum-Repository
+      baseurl: http://yum.mariadb.org/10.0.27/centos7-amd64/
+      gpgkey: https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+      gpgcheck: no
+      enabled: yes
+      state: present
+
+ - name: Install mariadb
+   yum:
+      name: mariadb-server
+      state: installed
+
+ - name: start mysql
+   service:
+      name: mysql
+      state: started
+      enabled: yes
+
+ - name: create path for data files had issues changed data files to /var
+   file:
+      path: /data/
+      owner: root
+      group: mysql
+      mode: 0770
+      state: directory
+
+ - name: create path for backup
+   file:
+      path: /backup
+      owner: root
+      group: root
+      mode: 0755
+      state: directory
+
+ - name: copy database dump file
+   copy:
+      src: /etc/ansible/AWBackup.sql
+      dest: /backup
+
+ - name: Remove the adventureworks database if it exixsts
+   mysql_db:
+      name: adventureworks
+      state: absent
+
+ - name: Restore database
+   mysql_db:
+      name: adventureworks
+      state: import
+      target: /backup/AWBackup.sql
+
+ - name: create binlog
+   file:
+      path: /data/binlog
+      state: directory
+      owner: mysql
+      group: mysql
+      mode: 0755
+
+ - name: create relay log
+   file:
+      path: /data/relay
+      state: directory
+      owner: mysql
+      group: mysql
+      mode: 0755
+
+ - name: create logfile for mysql
+   file:
+      path: /var/log/mariadb.log
+      owner: mysql
+      group: root
+      mode: 0660
+      state: touch
+
+ - name: reconfigure mysql for master status
+   template:
+      src: /etc/ansible/roles/mysql-installation/templates/my.cnf.j2
+      dest: /etc/my.cnf
+      backup: yes
+      group: root
+      owner: root
+      mode: 0660
+   notify:
+     - restart mysql
+
+ - name: Remove the test database
+   mysql_db:
+      name: test
+      state: absent
+
+ - name: Ensure no anonymous users are in the database
+   mysql_user:
+      name: ''
+      host: localhost
+      state: absent
+
+ - name: Create database user with all db privileges
+   mysql_user:
+      name: admin
+      password: "{{ password }}"
+      priv: '*.*:ALL,GRANT'
+      state: present
+   notify:
+     - restart mysql
+
+
+
+
+
+
+
