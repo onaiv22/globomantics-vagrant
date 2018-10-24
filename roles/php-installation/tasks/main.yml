@@ -1,0 +1,38 @@
+---
+ - name: install php and its dependencies
+   yum:
+      name: "{{ item }}"
+      state: installed
+   with_items:
+      - php
+      - php-mysql
+      - php-gd
+      - php-mbstring
+      - php-odbc
+
+ - name: restart httpd
+   service:
+      name: httpd
+      state: restarted
+
+ - name: create website file
+   file:
+      path: /var/www/html/info.php
+      owner: root
+      group: root
+      mode: 0644
+      state: touch
+
+ - name: copy site accross
+   template:
+      src: /etc/ansible/roles/php-installation/templates/info.php.j2
+      dest: /var/www/html/info.php
+      group: root
+      owner: root
+      mode: 0644
+
+
+
+
+
+
