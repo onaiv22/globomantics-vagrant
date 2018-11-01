@@ -1,0 +1,8 @@
+---
+ - hosts: your_hostname
+   user: your_user_name
+   become: yes
+   roles:
+     - epel-release
+     - python
+     - mysql-installation_and_db_restore
