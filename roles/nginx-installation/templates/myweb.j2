@@ -1,0 +1,17 @@
+    upstream backend_hosts {
+        ip_hash;
+
+        server slave-1;
+        server slave-2;
+        server slave-3;
+}
+
+
+    server {
+        location / {
+            proxy_pass http://backend_hosts;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header $HOST host;
+}
+}
+

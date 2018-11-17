@@ -1,0 +1,6 @@
+---
+ - name: enable port 80/ https service
+   firewalld:
+      service: https
+      permanent: true
+      state: enabled

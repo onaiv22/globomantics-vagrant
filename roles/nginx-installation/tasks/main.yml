@@ -1,0 +1,27 @@
+---
+ - name: install nginx
+   yum:
+      name: nginx
+      state: present
+
+ - name: start & enable httpd service
+   service:
+      name: nginx
+      state: started
+      enabled: yes
+
+ - name: create file for nginx configuration
+   file:
+      path: /etc/nginx/conf.d/myweb.conf
+      owner: root
+      group: root
+      mode: 0644
+      state: touch
+ 
+ - name: configure nginx for reverse proxy
+   template:
+      src: /etc/ansible/roles/nginx-installation/templates/myweb.j2
+      dest: /etc/nginx/conf.d/myweb.conf
+      group: root
+      owner: root
+      mode: 0644 

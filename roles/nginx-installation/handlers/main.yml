@@ -1,0 +1,6 @@
+---
+ - name: start nginx
+   shell: systemctl start nginx
+
+ - name: restart nginx
+   shell: systemctl restart nginx
