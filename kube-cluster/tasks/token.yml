@@ -1,0 +1,30 @@
+---
+ - name: get join command
+   shell: kubeadm token create --print-join-command
+   register: join_command
+   when: ansible_hostname == "master"
+
+ - name: copy join command to local file
+   become: false
+   local_action: copy content="{{join_command.stdout_lines[0]}}" dest="./join-command"
+   when: ansible_hostname == "master"
+
+ - name: Copy the join command
+   copy:
+     src: join-command
+     dest: /tmp/join-command.sh
+     mode: 0777
+   when: ansible_hostname == "slave-5"
+
+ - name: Cluster initialization pre-check
+   stat:
+     path:
+      /etc/kubernetes/kubelet.conf
+   register: status
+   when: ansible_hostname == "slave-5"
+
+ - name: Join node(s) to cluster
+   command: sh /tmp/join-command.sh
+   when:
+     - ansible_hostname == "slave-5"
+     - status.stat.exists == false

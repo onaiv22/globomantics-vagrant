@@ -1,0 +1,57 @@
+---
+ - name: apt-get update
+   apt:
+     update_cache: true
+
+ - name: add googles' gpg key
+   apt_key:
+     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+     state: present
+
+ - name: add Kubernetes APT repository
+   apt_repository:
+     repo: deb https://apt.kubernetes.io/ kubernetes-xenial main
+     state: present
+     filename: kubernetes.list
+
+ - name: apt-get update again
+   apt:
+     update_cache: true
+
+ - name: install kubenetes dependencies
+   apt:
+     name: "{{ item }}"
+     state: present
+     update_cache: yes
+     force_apt_get: true
+   with_items:
+     - "{{ packages.common }}"
+   notify: restart docker
+
+ - name: restart docker
+   systemd:
+     name: docker
+     state: started
+     enabled: true
+     #masked: true
+
+ - name: Add vagrant user to docker group
+   user:
+     name: vagrant
+     group: docker
+
+ - name: Remove swapfile from /etc/fstab
+   mount:
+     name: "{{ item }}"
+     fstype: swap
+     state: absent
+   with_items:
+     - swap
+     - none
+
+ - name: Disable swap
+   command: swapoff -a
+   when: ansible_swaptotal_mb > 0
+
+ - name: install master tools
+   include_tasks: master-node-tools.yml

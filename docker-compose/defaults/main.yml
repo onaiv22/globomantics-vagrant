@@ -1,0 +1,6 @@
+---
+
+docker_compose:
+  version: "1.24.1"
+  path: /usr/local/bin/docker-compose
+  enabled: true

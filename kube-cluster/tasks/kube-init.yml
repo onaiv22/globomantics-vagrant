@@ -1,0 +1,38 @@
+---
+ - name: Cluster initialization pre-check
+   stat:
+    path:
+      /var/lib/etcd
+   register: status
+
+ - name: initialize the cluster
+   shell: kubeadm init --apiserver-advertise-address=10.10.45.10 --pod-network-cidr=192.168.0.0/16
+   when:
+     - ansible_hostname == "master"
+     - status.stat.exists == false
+
+ - name: configure account on master to have admin access to API server fron non-privileged account
+   become: yes
+   become_user: vagrant
+   file:
+     path: $HOME/.kube
+     state: directory
+     mode: 0755
+   when: ansible_hostname == "master"
+
+ - name: copy admin.conf to users kube config
+   copy:
+     src: /etc/kubernetes/admin.conf
+     dest: /home/vagrant/.kube/config
+     remote_src: yes
+     owner: vagrant
+   when: ansible_hostname == "master"
+
+ - name: Calico pod network configuration
+   #become: yes
+   become_user: vagrant
+   command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+   when: ansible_hostname == "master"
+
+ - name: join nodes to cluster
+   include_tasks: token.yml

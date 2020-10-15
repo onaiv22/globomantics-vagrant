@@ -1,0 +1,41 @@
+---
+- hosts: slave-1
+  user: femistone
+  become: yes
+  gather_facts: yes
+  vars:
+    device: /dev/sdb
+    fstype: ext4
+  tasks:
+   - name: Creating a primary disk partition on /dev/sdb
+     parted: device="{{ device }}" number=1 part_start="{{ part_start }}" part_end="{{ part_end }}" label=gpt state=present
+
+   - name: formating partitioned disk /dev/sdb1, creating a filesystem
+     filesystem: fstype="{{ fstype }}" dev="{{ dev1 }}"
+
+   - name: creating a mount point for the formated partition
+     file: state=directory owner=root group=root path="{{ path1 }}" mode=01777
+
+   - name: mount /dev/sdb1 on the mount /data1
+     mount: fstype="{{ fstype }}" src="{{ dev1 }}" path="{{ path1 }}" state=mounted
+
+   - name: Creating a primary disk partition on /dev/sdb for second drive data2
+     parted: device="{{ device }}" number=1 part_start="{{ part_start2 }}" part_end="{{ part_end2 }}" label=gpt state=present  
+   
+   - name: formating partitioned disk /dev/sdb1, creating a filesystem
+     filesystem: fstype="{{ fstype }}" dev="{{ dev2 }}"
+
+   - name: creating a mount point for the formated partition
+     file: state=directory owner=root group=root path="{{ path2 }}" mode=01777
+
+   - name: mount /dev/sdb1 on the mount /data1
+     mount: fstype="{{ fstype }}" src="{{ dev2 }}" path="{{ path2 }}" state=mounted
+
+   
+ 
+
+
+
+
+
+

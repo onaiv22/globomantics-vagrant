@@ -1,0 +1,134 @@
+#!/bin/bash
+NODE_IP=$(ip addr show eth1 | grep -i 'inet.*eth1' | cut -d ' ' -f 6 | cut -d '/' -f 1)
+echo $NODE_IP
+sleep 1s
+export VER="1.7.2"
+wget https://releases.hashicorp.com/consul/${VER}/consul_${VER}_linux_amd64.zip
+unzip consul_${VER}_linux_amd64.zip
+sudo mv consul /usr/local/bin/
+sudo mkdir -p /var/lib/consul
+sudo chown -R vagrant:vagrant /var/lib/consul
+sudo mkdir /etc/consul.d
+sudo chown -R vagrant:vagrant /etc/consul.d
+cat <<EOF | sudo tee /etc/systemd/system/consul.service
+[Unit]
+Description=Consul Service Discovery Agent
+Documentation=https://www.consul.io/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=vagrant
+Group=vagrant
+ExecStart=/usr/local/bin/consul agent -server -ui -advertise=$NODE_IP -bind=$NODE_IP -data-dir=/var/lib/consul -node=$HOSTNAME -config-dir=/etc/consul.d
+
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+TimeoutStopSec=5
+Restart=on-failure
+SyslogIdentifier=consul
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+MYKEY=`consul keygen`
+
+cat <<EOF | sudo tee  /etc/consul.d/config.json
+{
+    "advertise_addr": "$NODE_IP",
+    "bind_addr": "$NODE_IP",
+    "bootstrap_expect": 1,
+    "data_dir": "/var/lib/consul",
+    "domain": "consul",
+    "enable_syslog": true,
+    "encrypt": "$MYKEY",
+    "leave_on_terminate": true,
+    "log_level": "INFO",
+    "rejoin_after_leave": true,
+    "server": true,
+    "ui": true
+}
+EOF
+
+cat <<EOF | sudo tee  /etc/consul.d/ui.json
+{
+  "addresses": {
+    "http": "0.0.0.0"
+  }
+}
+EOF
+
+sudo systemctl start consul
+sudo systemctl enable consul
+
+VAULT_VERSION="1.4.0"
+curl -sO https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip
+unzip vault_${VAULT_VERSION}_linux_amd64.zip
+sudo mv vault /usr/local/bin/
+vault -autocomplete-install
+complete -C /usr/local/bin/vault vault
+sudo mkdir /etc/vault
+sudo mkdir -p /var/lib/vault/data
+sudo chown -R vagrant:vagrant /etc/vault /var/lib/vault/
+
+cat <<EOF | sudo tee /etc/systemd/system/vault.service
+[Unit]
+Description="HashiCorp Vault - A tool for managing secrets"
+Documentation=https://www.vaultproject.io/docs/
+Requires=network-online.target
+After=network-online.target
+ConditionFileNotEmpty=/etc/vault/config.hcl
+
+[Service]
+User=vagrant
+Group=vagrant
+ProtectSystem=full
+ProtectHome=read-only
+PrivateTmp=yes
+PrivateDevices=yes
+SecureBits=keep-caps
+AmbientCapabilities=CAP_IPC_LOCK
+NoNewPrivileges=yes
+ExecStart=/usr/local/bin/vault server -config=/etc/vault/config.hcl
+ExecReload=/bin/kill --signal HUP
+KillMode=process
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+StartLimitBurst=3
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+cat <<EOF | sudo tee /etc/vault/config.hcl
+disable_cache = true
+disable_mlock = true
+ui = true
+listener "tcp" {
+   address          = "0.0.0.0:8200"
+   tls_disable      = 1
+}
+storage "consul" {
+   path  = "$NODE_IP:8500"
+ }
+api_addr         = "http://0.0.0.0:8200"
+max_lease_ttl         = "10h"
+default_lease_ttl    = "10h"
+cluster_name         = "vault"
+raw_storage_endpoint     = true
+disable_sealwrap     = true
+disable_printable_check = true
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now vault
+
+export VAULT_ADDR=http://$NODE_IP:8200
+echo "export VAULT_ADDR=http://$NODE_IP:8200" >> ~/.bashrc
+sleep 1s
+vault operator init -address=http://$NODE_IP:8200 > /etc/vault/init.file

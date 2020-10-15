@@ -1,0 +1,6 @@
+---
+ - name: start httpd
+   shell: systemctl start httpd
+
+ - name: restart httpd
+   shell: systemctl restart httpd

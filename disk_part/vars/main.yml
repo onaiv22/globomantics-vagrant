@@ -1,0 +1,11 @@
+---
+part_start: 0%
+part_end: 50%
+part_start2: 51%
+part_end2: 80%
+path1: /data1
+path2: /data2
+device: /dev/sdb
+dev1: /dev/sdb1
+dev2: /dev/sdb2
+fstype: ext4

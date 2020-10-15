@@ -1,0 +1,40 @@
+---
+ - name: apt-get update
+   apt:
+     update_cache: true
+
+ - name: add docker repository key
+   apt_key:
+     url: https://download.docker.com/linux/ubuntu/gpg
+     state: present
+
+ - name: add docker repository
+   apt_repository:
+     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+     state: present
+     update_cache: true
+
+ - name: install docker
+   package:
+     name: docker-ce
+     state: present
+
+ - name: unmask, enable and start the docker service
+   systemd:
+     name: docker
+     masked: false
+     enabled: true
+     state: started
+
+ - name: install pip
+   apt:
+     name: python-pip
+     state: present
+
+ - name: install pip3
+   apt:
+     name: python3-pip
+     state: present
+
+ - name: run helm dependencies
+   include_tasks: helm-utils.yml

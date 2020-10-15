@@ -1,0 +1,13 @@
+---
+# vars file for bind set up
+fqdn: slave-1.stone.com
+rev_domain: 45.10.10.in-addr.arpa
+domain: stone.com
+IPADDR: 10.10.45.14
+GATEWAY: 10.0.2.2
+NETWORK: 10.10.45.0
+SUBMASK: 255.255.255.0
+bind_packages:
+   - python-netaddr
+   - bind
+   - bind-utils

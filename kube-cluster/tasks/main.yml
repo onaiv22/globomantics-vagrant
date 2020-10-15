@@ -1,0 +1,4 @@
+---
+ - name: install kube-dependencies
+   include_tasks: kube-dependencies.yml
+   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'

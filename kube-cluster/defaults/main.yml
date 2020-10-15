@@ -1,0 +1,25 @@
+---
+packages:
+  common:
+    - apt-transport-https
+    - docker.io
+    - kubeadm
+    - kubelet
+    - kubectl
+
+  master:
+    - snapd
+    - python-pip
+
+  helm_url:
+    - https://get.helm.sh/helm-v3.2.0-linux-amd64.tar.gz
+
+  helm_version:
+    - v3.2.0
+
+
+
+
+#aws-keys:
+#aws_access_key_id = AKIAZIIK2CLTD3H5CZOA
+#aws_secret_access_key = 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

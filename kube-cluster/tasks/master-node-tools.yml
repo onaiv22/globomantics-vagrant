@@ -1,0 +1,102 @@
+---
+ - name: install python-pip && snapd
+   apt:
+     name: "{{ item }}"
+     state: present
+   with_items:
+     - "{{ packages.master }}"
+   when: ansible_hostname == "master"
+
+ - name: create .aws folder
+   file:
+     path: /home/vagrant/.aws
+     state: directory
+     owner: vagrant
+     group: vagrant
+     mode: 0761
+   when: ansible_hostname == "master"
+
+ - name: create aws config file
+   file:
+     path: /home/vagrant/.aws/config
+     state: touch
+     owner: vagrant
+     group: vagrant
+     mode: 0600
+   when: ansible_hostname == "master"
+
+ - name: create credentials file
+   file:
+     path: /home/vagrant/.aws/credentials
+     state: touch
+     owner: vagrant
+     group: vagrant
+     mode: 0600
+   when: ansible_hostname == "master"
+
+
+ - name: copy aws cofig.j2
+   template:
+      src: /etc/ansible/roles/kube-cluster/templates/config.j2
+      dest: /home/vagrant/.aws/config
+      owner: vagrant
+      group: vagrant
+      mode: 0600
+   when: ansible_hostname == "master"
+
+ - name: copy credentials.j2
+   template:
+      src: /etc/ansible/roles/kube-cluster/templates/credentials.j2
+      dest: /home/vagrant/.aws/credentials
+      owner: vagrant
+      group: vagrant
+      mode: 0600
+   when: ansible_hostname == "master"
+
+ - name: pip install awscli
+   shell: pip install awscli
+   when: ansible_hostname == "master"
+
+ #- name: install helm 3
+  #shell: snap install helm --classic
+   #when: ansible_hostname == "master"
+
+ - name: Download helm
+   unarchive:
+     src: https://get.helm.sh/helm-v3.2.0-linux-amd64.tar.gz
+     dest: /tmp
+     copy: no
+   when: ansible_hostname == "master"
+
+ - name: mv helm binary
+   shell: mv /tmp/linux-amd64/helm /usr/local/bin/helm
+   when: ansible_hostname == "master"
+
+ - name: Pre s3 plugin check
+   become_user: vagrant
+   shell: helm plugin list | awk 'NR==2{print $1}'
+   register: "status"
+
+ - debug:
+     var: status
+
+ - name: install helm s3 plugin
+   become_user: vagrant
+   shell: helm plugin install https://github.com/hypnoglow/helm-s3.git
+   when:
+     - ansible_hostname == "master"
+     - status.stdout !="s3"
+
+ - name: Create your Helm chart repository
+   become_user: vagrant
+   shell: helm s3 init s3://pv-helm-charts-repo/charts
+   when: ansible_hostname == "master"
+
+ - name: add project helm repo
+   become_user: vagrant
+   shell: helm repo add my-charts s3://pv-helm-charts-repo/charts
+   when: ansible_hostname == "master"
+
+ - name: initialize kubeadmn on master
+   include_tasks: kube-init.yml
+   #when: ansible_hostname == "master"
